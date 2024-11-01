@@ -183,6 +183,7 @@ def load_incidence(
             ),
         )
         .dropna(subset=["age_bin"])
+        .assign(age_bin=lambda df: df["age_bin"].astype(int))
         .groupby(["histology", "year", "age_bin", "sex"])[["count"]]
         .sum()
         .reset_index()
@@ -321,6 +322,7 @@ def load_registry_population_data(
             ),
         )
         .dropna(subset=["age_bin"])
+        .assign(age_bin=lambda df: df["age_bin"].astype(int))
         .groupby(["year", "age_bin", "sex"])[["population"]]
         .sum()
         .reset_index()

@@ -145,20 +145,17 @@ def plot_animated_population_pyramid(registry: int | None, bin_size: int = 5):
     ani = animation.FuncAnimation(
         fig, animate, frames=populations["year"].unique(), interval=200
     )
-    save_dir = os.path.join("plots", "seer", "populations")
+    save_dir = os.path.join("plots", "seer", "populations", "animated_pyramids")
     os.makedirs(save_dir, exist_ok=True)
     ani.save(
-        os.path.join(
-            save_dir,
-            (f"population_SEER_{registry}.gif" if registry else "population_total.gif"),
-        )
+        os.path.join(save_dir, (f"SEER_{registry}.gif" if registry else "total.gif"))
     )
     plt.close(fig)
 
 
 def plot_interval_population_pyramids(registry: int | None, bin_size: int = 5):
     age_groups = get_age_groups(bin_size)
-    for year in range(1970, 2020, 5):
+    for year in range(1970, 2022, 5):
         fig, ax = plt.subplots()
         plot_population_pyramid(
             axis=ax,

@@ -96,7 +96,8 @@ def lineplot_by_registry_recode_sex(
     save_dir = os.path.join(
         "plots",
         "seer",
-        "age_standardised_rates" if age_standardised else "crude_rates",
+        "rates",
+        "age_standardised" if age_standardised else "crude",
         "by_registry" if all_registries else "SEER_8",
         "by_sex",
     )
@@ -142,7 +143,8 @@ def lineplot_by_registry(age_standardised: bool = True, recode: str = "rare_canc
     save_dir = os.path.join(
         "plots",
         "seer",
-        "age_standardised_rates" if age_standardised else "crude_rates",
+        "rates",
+        "age_standardised" if age_standardised else "crude",
         "by_registry",
     )
     os.makedirs(save_dir, exist_ok=True)
@@ -150,8 +152,16 @@ def lineplot_by_registry(age_standardised: bool = True, recode: str = "rare_canc
     plt.close(fig)
 
 
-def lineplot_by_age_group(registry: int, age_bin_size: int = 5):
-    age_bins = get_age_groups(age_bin_size)
+def lineplot_by_age_group(
+    registry: int,
+    age_bin_size: int | None = None,
+    age_bins: list[tuple[int, int]] | None = None,
+):
+    if age_bin_size is not None:
+        assert age_bins is None, "age_bins must be None if age_bin_size is not None"
+        age_bins = get_age_groups(age_bin_size)
+    else:
+        assert age_bins is not None, "age_bins must be provided if age_bin_size is None"
     rates = load_rates_by_registry_recode(
         registry, "rare_cancers", age_bins, age_standardised=False
     )
@@ -160,8 +170,8 @@ def lineplot_by_age_group(registry: int, age_bin_size: int = 5):
     axes = [
         [fig.add_subplot(gs[row, column]) for column in range(2)] for row in range(2)
     ]
-    for row, histology in enumerate(["LUAD", "LUSC"]):
-        for column, sex in enumerate(["Male", "Female"]):
+    for row, histology in enumerate(["LUSC", "LUAD"]):
+        for column, sex in enumerate(["Female", "Male"]):
             sns.lineplot(
                 data=rates.loc[
                     (rates["histology"] == histology) & (rates["sex"] == sex)
@@ -175,6 +185,8 @@ def lineplot_by_age_group(registry: int, age_bin_size: int = 5):
             )
             axes[row][column].set_title(f"{histology} ({sex})")
             axes[row][column].set_ylim(0, None)
+            axes[row][column].set_xlabel("Year of diagnosis")
+            axes[row][column].set_ylabel("Cases per 100,000")
     legend_ax = fig.add_subplot(gs[:, 2])
     legend_ax.axis("off")
     legend_ax.legend(
@@ -203,9 +215,16 @@ def lineplot_by_age_group(registry: int, age_bin_size: int = 5):
         axis.set_ylabel("")
         axis.set_yticklabels([])
     fig.tight_layout()
-    save_dir = os.path.join("plots", "seer", "populations", "by_age_group")
+    save_dir = os.path.join(
+        "plots", "seer", "rates", "by_age_group", f"registry_{registry}"
+    )
     os.makedirs(save_dir, exist_ok=True)
-    fig.savefig(os.path.join(save_dir, f"registry_{registry}.pdf"))
+    fig.savefig(
+        os.path.join(
+            save_dir,
+            f"age_bin_size_{age_bin_size}.pdf" if age_bin_size else "age_bins.pdf",
+        )
+    )
     plt.close(fig)
 
 
@@ -226,4 +245,8 @@ if __name__ == "__main__":
         lineplot_by_registry(age_standardised=True, recode=recode_)
         lineplot_by_registry(age_standardised=False, recode=recode_)
     for registry_ in [8, 12, 17]:
-        lineplot_by_age_group(registry_, 10)
+        for age_bin_size_ in [5, 8, 10, 17]:
+            lineplot_by_age_group(registry_, age_bin_size=age_bin_size_)
+        lineplot_by_age_group(  # BRFSS age bins
+            registry_, age_bins=[(18, 39), (40, 59), (60, 79), (80, 150)]
+        )
