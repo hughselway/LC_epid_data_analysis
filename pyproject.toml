@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "lc-epid-data-analysis"
+version = "0.1.0"
+description = ""
+authors = ["hughselway <h.selway@ucl.ac.uk>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pandas = "^2.2.3"
+lifelines = "^0.29.0"
+matplotlib = "^3.9.2"
+statsmodels = "^0.14.4"
+sci-palettes = "^1.0.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
